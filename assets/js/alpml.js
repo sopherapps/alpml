@@ -17,8 +17,7 @@
 
                 self.isInitialized = false;
 
-                // attach a shadow dom
-                self.attachShadow({ mode: "open" });
+                self.displayNode = undefined;
 
                 // initialize state
                 self.state = { ...props }
@@ -31,22 +30,8 @@
              * A WebComponent lifecycle method when component is attached to DOM
              */
             connectedCallback() {
-                const shadow = self.shadowRoot;
-
-                // get important global styles and scripts
-                const styleNodes = document.getElementsByTagName("style");
-                const scriptNodes = document.querySelectorAll("script");
-
-                // copy them to shadow dom
-                for (const node of styleNodes) {
-                    shadow.appendChild(node.cloneNode());
-                }
-                for (const node of scriptNodes) {
-                    shadow.appendChild(node.cloneNode());
-                }
-
                 // render this element
-                render(shadow, self.template, self.state);
+                self.displayNode = render(self.parentNode, self.displayNode, self.template, self.state);
             }
 
             /**
@@ -66,7 +51,8 @@
                         self.isInitialized = true;
                         return;
                     }
-                    render(self.shadowRoot, self.template, self.state);
+
+                    self.displayNode = render(self.parentNode, self.displayNode, self.template, self.state);
                 }
             }
         }
@@ -112,11 +98,13 @@
     /**
      * Renders a given template on the given shadowRoot
      * 
-     * @param {ShadowRoot} shadowRoot - the ShadowRoot to render on
+     * @param {Element} parentNode - the node to which this element is attached
+     * @param {Element | undefined} displayNode - the node that actually works with the DOM
      * @param {Handlebars.Template | undefined} template - the template to render
      * @param {{[key: string]: any}} context - the context in which the template is to be rendered
+     * @returns {Element} - the new display node, replacing the old one
     */
-    function render(shadowRoot, template, context) {
+    function render(parentNode, displayNode, template, context) {
         if (template) {
             const outerHtml = template(context);
             const { openingTag, innerHTML, closingTag } = extractSections(outerHtml);
@@ -132,15 +120,14 @@
             const node = document.createElement(openingTag);
             node.innerHTML = innerHTML;
 
-            try {
-                shadowRoot.removeChild(shadowRoot.firstChild());
-            } catch (error) {
-                if (!(error instanceof TypeError)) {
-                    throw error;
-                }
+            if (displayNode) {
+                displayNode.replaceWith(node);
+            } else {
+                // we probably need to get the exact position where this element is anchored
+                parentNode.appendChild(node);
             }
 
-            shadowRoot.appendChild(node);
+            return node;
         }
     }
 
