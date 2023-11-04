@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpml</title>
+
+    <!--Components-->
+    <object data-alpml="sidebar" data-props='{"title": "Sidebar"}' type="text/x-handlebars-template"
+        data="./components/sidebar.hbs"></object>
+    <object data-alpml="navbar" data-props='{"name": "John"}' type="text/x-handlebars-template"
+        data="./components/navbar.hbs"></object>
+    <object data-alpml="main" type="text/x-handlebars-template" data="./components/main.hbs"></object>
+    <!--/Components-->
+
+    <!--alpml.js after components but before the body-->
+    <script src="./assets/js/alpml.js"></script>
+</head>
+
+<body>
+
+    <alp-sidebar title="Really"></alp-sidebar>
+    <alp-navbar name="Jane"></alp-navbar>
+    <alp-navbar name="Paul"></alp-navbar>
+    <alp-navbar name="Rania"></alp-navbar>
+    <alp-main name="Rania"></alp-main>
+
+</body>
+
+</html>
