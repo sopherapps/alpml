@@ -1,8 +1,10 @@
-<div>
-    <h2>Main</h2>
-    <div x-data="{ count: 0 }">
-        <button x-on:click="count++">Increment</button>
+<template props="initial,final">
+    <div>
+        <h2>Main</h2>
+        <div x-data="{ count: ${initial} }">
+            <button x-on:click="count++">Increment</button>
 
-        <span x-text="count"></span>
+            <span x-text="count"></span>
+        </div>
     </div>
-</div>
+</template>

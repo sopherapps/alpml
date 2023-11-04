@@ -3,44 +3,34 @@
     /**
      * Defines an Alpml web component to be used in another HTML document
      * @param {string} suffix - the suffix of the component to be appended to 'alp-'
-     * @param {{[key: string]: any}} props - the default props or state of this component
      * @param {string} source - the template source code for the component
      */
-    const defineComponent = (suffix, props, source = '') => {
+    const defineComponent = (suffix, source = '') => {
         const componentName = `alp-${suffix}`;
+        const template = parseTemplate(source);
 
         const component = class extends HTMLElement {
-            static observedAttributes = [...Object.keys(props)];
+            static observedAttributes = [...template.props];
 
             constructor() {
                 self = super();
-
                 self.isInitialized = false;
-
                 self.displayNode = undefined;
-
-                // initialize state
-                self.state = { ...props }
-
-                // initialize the template
-                self.template = window.Handlebars.compile(source);
+                self.template = { ...template };
+                self.state = {};
             }
 
-            /**
-             * A WebComponent lifecycle method when component is attached to DOM
-             */
             connectedCallback() {
-                // render this element
                 self.displayNode = render(self.parentNode, self.displayNode, self.template, self.state);
             }
 
             /**
-             * A WebComponent lifecycle callback when an observed attribute changes
-             * 
-             * @param {string} name - the name of the attribute that has changed
-             * @param {any} oldValue - the old valu of the attribute
-             * @param {any} newValue - the new valu of the attribute
-             */
+            * A WebComponent lifecycle callback when an observed attribute changes
+            * 
+            * @param {string} name - the name of the attribute that has changed
+            * @param {any} oldValue - the old valu of the attribute
+            * @param {any} newValue - the new valu of the attribute
+            */
             attributeChangedCallback(name, oldValue, newValue) {
                 if (oldValue !== newValue) {
                     self.state[name] = newValue;
@@ -73,26 +63,28 @@
         alpineScript.setAttribute('defer', 'true');
         headNode.appendChild(alpineScript);
 
-        // add handlebars
-        const handlebarsScript = document.createElement('script');
-        handlebarsScript.setAttribute('src', 'https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js');
-        headNode.appendChild(handlebarsScript);
 
-        handlebarsScript.addEventListener('load', () => {
-            console.log("loaded handlebars");
+        alpineScript.addEventListener('load', () => {
+            console.log("loaded alpine.");
 
             // initialize all components
-            const nodes = document.querySelectorAll('[data-alpml][type="text/x-handlebars-template"]');
+            const nodes = document.querySelectorAll('object[type="text/x-alpml"]');
             nodes.forEach(node => {
-                const source = node.contentDocument.getElementsByTagName("pre")[0].innerText;
-                const { alpml: suffix, props: propsAsString = "{}" } = node.dataset;
-                const props = parseProps(propsAsString);
-                defineComponent(suffix, props, source);
+                const suffix = node.getAttribute("is");
+
+                if (suffix) {
+                    const source = node.contentDocument.getElementsByTagName("pre")[0].innerText;
+                    defineComponent(suffix, source);
+                } else {
+                    console.error("missing 'is' attribute in ", node);
+                }
+
+                // clean up
                 node.parentElement.removeChild(node);
             });
 
-            console.log("loaded components");
-        });
+            console.log("loaded components.");
+        })
     }
 
     /**
@@ -100,71 +92,96 @@
      * 
      * @param {Element} parentNode - the node to which this element is attached
      * @param {Element | undefined} displayNode - the node that actually works with the DOM
-     * @param {Handlebars.Template | undefined} template - the template to render
-     * @param {{[key: string]: any}} context - the context in which the template is to be rendered
+     * @param {{openingTag: string; innerHTML: string; closingTag: string; props: string[]}} template - the parsed template to render
+     * @param {{[key: string]: any}} state - the current state of affairs
      * @returns {Element} - the new display node, replacing the old one
     */
-    function render(parentNode, displayNode, template, context) {
-        if (template) {
-            const outerHtml = template(context);
-            const { openingTag, innerHTML, closingTag } = extractSections(outerHtml);
+    function render(parentNode, displayNode, template, state) {
+        const { openingTag, innerHTML: rawHTML } = template;
+        const innerHTML = interpolateHTML(rawHTML, state);
+        const node = document.createElement(openingTag);
+        node.innerHTML = innerHTML;
 
-            if (openingTag !== closingTag) {
-                throw TypeError("malformed template, opening and closing tags don't match");
-            }
-
-            if (!openingTag) {
-                throw TypeError(`template missing a root tag, '${outerHtml}'`)
-            }
-
-            const node = document.createElement(openingTag);
-            node.innerHTML = innerHTML;
-
-            if (displayNode) {
-                displayNode.replaceWith(node);
-            } else {
-                // we probably need to get the exact position where this element is anchored
-                parentNode.appendChild(node);
-            }
-
-            return node;
+        if (displayNode) {
+            displayNode.replaceWith(node);
+        } else {
+            parentNode.appendChild(node);
         }
+
+        return node;
     }
 
     /**
-     * Parses the props string got from the data attributes, defaulting to an empty {}
-     * 
-     * @param {string} propsJSON - the string got from data-props
-     * @returns {[key: string]: any}
+     * Replaces some variables in the html string with the variables in the context
+     * @param {string} htmlStr - the html string to interpolate
+     * @param {{[key: string], any}} context - the context in which interpolation is done
      */
-    function parseProps(propsJSON) {
-        try {
-            return JSON.parse(propsJSON);
-        } catch (error) {
-            console.error("error getting props", error)
-            return {}
+    function interpolateHTML(htmlStr, context) {
+        let result = '';
+        const matches = htmlStr.matchAll(/\$\{(\s*)?([a-zA-Z0-9_]*)(\s*)?\}/g);
+        let cursor = 0;
+
+        for (const match of matches) {
+            result += htmlStr.slice(cursor, match.index);
+            cursor = match.index + match[0].length;
+            const key = match[2];
+            result += `${context[key] || ''}`;
         }
+
+        result += htmlStr.slice(cursor);
+        return result;
     }
+
 
     /**
      * Extracts the sections of the html string i.e. opening tag, closing tag and body
-     * @param {string} htmlString - the html string to seach through
-     * @returns {{openingTag: string; innerHTML: string; closingTag: string}} - the sections of the HTML string
+     * @param {string} templateStr - the html string to seach through
+     * @param {number} level - the level at which we are starting
+     * @returns {{openingTag: string; innerHTML: string; closingTag: string; props: string[]}} - the sections of the HTML string
      */
-    function extractSections(htmlString) {
-        const positions = [0, 0];
+    function parseTemplate(templateStr, level = 0) {
+        const openingTagEnd = templateStr.indexOf(">");
+        const closingTagStart = templateStr.lastIndexOf("</");
 
-        const openingTagEnd = htmlString.indexOf(">");
-        const closingTagStart = htmlString.lastIndexOf("</");
+        const rawOpeningTag = templateStr.slice(undefined, openingTagEnd);
+        const innerHTML = templateStr.slice(openingTagEnd + 1, closingTagStart);
+        let closingTag = templateStr.slice(closingTagStart, undefined);
 
-        let openingTag = htmlString.slice(undefined, openingTagEnd);
-        const innerHTML = htmlString.slice(openingTagEnd + 1, closingTagStart);
-        let closingTag = htmlString.slice(closingTagStart, undefined);
-
-        openingTag = openingTag.replaceAll(/<|>|\s|\//g, "");
         closingTag = closingTag.replaceAll(/<|>|\s|\//g, "");
+        // opening tag may have attributes
+        const openingTag = rawOpeningTag.trim().split(" ")[0].replaceAll(/<|>|\s|\//g, "");
 
-        return { openingTag, innerHTML, closingTag };
+        if (openingTag !== closingTag) {
+            throw TypeError(`malformed template, opening and closing tags, '${openingTag}' and '${closingTag}' don't match`);
+        }
+
+        if (!openingTag) {
+            throw TypeError(`template missing a root tag, '${templateStr}'`)
+        }
+
+        // It was theoretically possible to enter long recursion, thus need for level-guard
+        if (openingTag === 'template' && level < 1) {
+            const innerTemplate = parseTemplate(innerHTML, level + 1);
+            return { ...innerTemplate, props: extractProps(rawOpeningTag) };
+        }
+
+        return { openingTag, innerHTML, closingTag, props: [] };
+    }
+
+    /**
+     * Extracts a list of props from the opening tag of the template
+     * 
+     * @param {string} templateTag - the <template ...> tag
+     * @returns {string[]}
+     */
+    function extractProps(templateTag) {
+        const matches = /props="?'?([a-zA-Z,0-9_\-]*)"?'?/.exec(templateTag) || [];
+        const propsString = matches[1];
+        if (propsString) {
+            return propsString.split(",").map(v => v.trim());
+        }
+
+        return [];
     }
 
     // initialize alpine
