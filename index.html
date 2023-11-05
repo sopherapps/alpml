@@ -7,9 +7,9 @@
     <title>Alpml</title>
 
     <!--Components-->
-    <object is="sidebar" type="text/x-alpml" data="./components/sidebar.hbs"></object>
-    <object is="navbar" type="text/x-alpml" data="./components/navbar.hbs"></object>
-    <object is="main" type="text/x-alpml" data="./components/main.hbs"></object>
+    <object is="my-sidebar" type="text/x-alpml" data="./components/sidebar.hbs"></object>
+    <object is="the-navbar" type="text/x-alpml" data="./components/navbar.hbs"></object>
+    <object is="custom-main" type="text/x-alpml" data="./components/main.hbs"></object>
     <!--/Components-->
 
     <!--alpml.js after components but before the body-->
@@ -18,12 +18,12 @@
 
 <body>
 
-    <alp-sidebar title="Really"></alp-sidebar>
-    <alp-navbar name="Jane"></alp-navbar>
-    <alp-navbar name="Paul"></alp-navbar>
-    <alp-main initial="50">
-        <alp-navbar name="Rania"></alp-navbar>
-    </alp-main>
+    <my-sidebar title="Really"></my-sidebar>
+    <the-navbar name="Jane"></the-navbar>
+    <the-navbar name="Paul"></the-navbar>
+    <custom-main initial="50">
+        <the-navbar name="Rania"></the-navbar>
+    </custom-main>
 
 </body>
 

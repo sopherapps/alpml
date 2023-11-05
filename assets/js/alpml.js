@@ -2,12 +2,11 @@
 
     /**
      * Defines an Alpml web component to be used in another HTML document
-     * @param {string} suffix - the suffix of the component to be appended to 'alp-'
+     * @param {string} name - the hyphenated name of the component to be created
      * @param {string} source - the template source code for the component
      */
-    const defineComponent = (suffix, source = '') => {
-        // FIXME: Allow any name, just check that it has at least one hyphen or error out
-        const componentName = `alp-${suffix}`;
+    const defineComponent = (name, source = '') => {
+        const componentName = name;
         const template = parseTemplate(source);
 
         const component = class extends HTMLElement {
@@ -76,16 +75,13 @@
             // initialize all components
             const nodes = document.querySelectorAll('object[type="text/x-alpml"]');
             nodes.forEach(node => {
-                const suffix = node.getAttribute("is");
-
-                if (suffix) {
-                    const source = node.contentDocument.getElementsByTagName("pre")[0].innerText;
-                    defineComponent(suffix, source);
-                } else {
-                    console.error("missing 'is' attribute in ", node);
+                const name = node.getAttribute("is") || '';
+                if (!name.includes("-")) {
+                    throw TypeError(`An 'is' attribute with a hyphenated value is required`);
                 }
 
-                // clean up
+                const source = node.contentDocument.getElementsByTagName("pre")[0].innerText;
+                defineComponent(name, source);
                 node.parentElement.removeChild(node);
             });
 
