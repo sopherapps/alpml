@@ -6,6 +6,7 @@
      * @param {string} source - the template source code for the component
      */
     const defineComponent = (suffix, source = '') => {
+        // FIXME: Allow any name, just check that it has at least one hyphen or error out
         const componentName = `alp-${suffix}`;
         const template = parseTemplate(source);
 
@@ -16,12 +17,16 @@
                 self = super();
                 self.isInitialized = false;
                 self.displayNode = undefined;
+                self.childHoldingNode = undefined;
                 self.template = { ...template };
-                self.state = {};
+                self.state = {
+                    "$key": `${Math.random()}`
+                };
             }
 
             connectedCallback() {
                 self.displayNode = render(self.parentNode, self.displayNode, self.template, self.state);
+                self.dispatchEvent(new Event('initialized'));
             }
 
             /**
@@ -43,6 +48,7 @@
                     }
 
                     self.displayNode = render(self.parentNode, self.displayNode, self.template, self.state);
+                    self.dispatchEvent(new Event('attributesUpdated'));
                 }
             }
         }
@@ -101,22 +107,53 @@
         const innerHTML = interpolateHTML(rawHTML, state);
         const node = document.createElement(openingTag);
         node.innerHTML = innerHTML;
+        node.dataset.key = state["$key"];
+        isParentWebComponent = parentNode.tagName.includes("-");
 
         if (displayNode) {
             displayNode.replaceWith(node);
-        } else {
-            parentNode.appendChild(node);
+            return node;
         }
 
+        if (isParentWebComponent) {
+            // attempt synchronous insert if displayNode is initialized
+            parentNode.displayNode && insertChildNode(parentNode, node);
+            // or just do it asynchronously, i.e. when parent is initialized
+            parentNode.addEventListener('initialized', (event) => insertChildNode(event.target, node));
+            return node;
+        }
+
+        parentNode.appendChild(node);
         return node;
+    }
+
+    /**
+     * Inserts a given node into the position left for children in the template
+     * 
+     * @param {Element} parentNode - the parent node that is also a web component
+     * @param {Element} node - the node to insert in the right position
+     */
+    function insertChildNode(parentNode, node) {
+        try {
+            const parentKey = parentNode.state["$key"];
+            const selector = `[data-alp-kids="${parentKey}"]`;
+            const nodes = parentNode.displayNode.querySelectorAll(selector);
+            const lastNode = nodes[nodes.length - 1];
+            lastNode && lastNode.after(node);
+        } catch (error) {
+            console.error(error);
+        }
+
     }
 
     /**
      * Replaces some variables in the html string with the variables in the context
      * @param {string} htmlStr - the html string to interpolate
      * @param {{[key: string], any}} context - the context in which interpolation is done
+     * @returns {string} - the interpolated string
      */
     function interpolateHTML(htmlStr, context) {
+        const childPlaceholder = `<div data-alp-kids='${context["$key"]}' style='display: none;'></div>`;
         let result = '';
         const matches = htmlStr.matchAll(/\$\{(\s*)?([a-zA-Z0-9_]*)(\s*)?\}/g);
         let cursor = 0;
@@ -125,11 +162,12 @@
             result += htmlStr.slice(cursor, match.index);
             cursor = match.index + match[0].length;
             const key = match[2];
-            result += `${context[key] || ''}`;
+            const value = key === "children" ? childPlaceholder : context[key] || '';
+            result += `${value}`;
         }
 
         result += htmlStr.slice(cursor);
-        return result;
+        return result
     }
 
 
