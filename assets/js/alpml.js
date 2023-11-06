@@ -16,7 +16,6 @@
                 self = super();
                 self.isInitialized = false;
                 self.displayNode = undefined;
-                self.childHoldingNode = undefined;
                 self.template = { ...template };
                 self.state = {
                     "$key": `${Math.random()}`
