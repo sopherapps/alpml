@@ -1,0 +1,36 @@
+{
+  "name": "alpml",
+  "version": "0.0.1",
+  "description": "A composition-based Javascript/HTML framework without need for bundlers, based on Alpine.js",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "jest",
+    "copy": "cp -f index.js dist/alpml.js",
+    "minify": "rm dist/alpml.min.js || echo 'no pre-existing alpml.min.js' && terser index.js -c -o dist/alpml.min.js",
+    "publish": "npm run copy && npm run minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Tinitto/alpml.git"
+  },
+  "keywords": [
+    "Alpine.js",
+    "Reactivity",
+    "WebComponents",
+    "JavaScript",
+    "Framework"
+  ],
+  "author": "Martin Ahindura",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Tinitto/alpml/issues"
+  },
+  "homepage": "https://github.com/Tinitto/alpml#readme",
+  "devDependencies": {
+    "prettier": "3.0.3",
+    "terser": "^5.24.0"
+  }
+}

@@ -17,3 +17,16 @@ A Javascript framework without need for bundlers, based on Alpine.js
 ## Note
 
 - Every alpml component **must** have at least one hyphen (-) in it, as all [Web components should](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name).
+
+## Contributing
+
+- You need to have [nodejs +v16](https://nodejs.org/en/)
+- Clone the repository
+- Create an issue that you wish to solve
+- Make a pull request to fix the given issue
+
+## License
+
+Copyright (c) 2020 [Martin Ahindura](https://github.com/Tinitto)
+
+Licensed under the [MIT License](./LICENSE)

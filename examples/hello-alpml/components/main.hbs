@@ -1,7 +1,7 @@
 <template props="initial,final,children">
-    <div>
+    <div data-cy-main="${initial}">
         <h2>Main</h2>
-        <div x-data="{ count: ${initial} }">
+        <div data-cy-content="" x-data="{ count: ${initial} }">
             <button x-on:click="count++">Increment</button>
             ${children}
             <span x-text="count"></span>
