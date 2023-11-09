@@ -7,7 +7,8 @@
     "example": "examples"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --detectOpenHandles --forceExit && kill $(lsof -t -i:3000)",
+    "serve": "parcel examples/hello-alpml/index.html --port 3000 --dist-dir out",
     "copy": "cp -f index.js dist/alpml.js",
     "minify": "rm dist/alpml.min.js || echo 'no pre-existing alpml.min.js' && terser index.js -c -o dist/alpml.min.js",
     "publish": "npm run copy && npm run minify"
@@ -30,7 +31,15 @@
   },
   "homepage": "https://github.com/Tinitto/alpml#readme",
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-puppeteer": "^9.0.1",
+    "parcel": "^2.10.2",
     "prettier": "3.0.3",
+    "puppeteer": "^21.5.1",
     "terser": "^5.24.0"
+  },
+  "jest": {
+    "preset": "jest-puppeteer"
   }
 }

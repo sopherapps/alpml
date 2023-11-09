@@ -174,7 +174,7 @@
    *
    * @param {Element} parentNode - the node to which this element is attached
    * @param {Element | undefined} displayNode - the node that actually works with the DOM
-   * @param {{openingTag: string; innerHTML: string; closingTag: string; props: string[]}} template - the parsed template to render
+   * @param {{openingTag: string; innerHTML: string; closingTag: string; props: string[], attributes: [string, string][]}} template - the parsed template to render
    * @param {{[key: string]: any}} state - the current state of affairs
    * @returns {Element} - the new display node, replacing the old one
    */
@@ -182,6 +182,9 @@
     const { openingTag, innerHTML: rawHTML } = template;
     const innerHTML = interpolateHTML(rawHTML, state);
     const node = document.createElement(openingTag);
+    template.attributes.forEach(([k, v]) =>
+      node.setAttribute(k, interpolateHTML(v, state)),
+    );
     node.innerHTML = innerHTML;
     node.dataset.key = state["$key"];
     isParentWebComponent = parentNode.tagName.includes("-");
@@ -251,7 +254,7 @@
    * Extracts the sections of the html string i.e. opening tag, closing tag and body
    * @param {string} templateStr - the html string to seach through
    * @param {number} level - the level at which we are starting
-   * @returns {{openingTag: string; innerHTML: string; closingTag: string; props: string[]}} - the sections of the HTML string
+   * @returns {{openingTag: string; innerHTML: string; closingTag: string; props: string[], attributes: [string, string][]}} - the sections of the HTML string
    */
   function parseTemplate(templateStr, level = 0) {
     const openingTagEnd = templateStr.indexOf(">");
@@ -263,10 +266,13 @@
 
     closingTag = closingTag.replaceAll(/<|>|\s|\//g, "");
     // opening tag may have attributes
-    const openingTag = rawOpeningTag
-      .trim()
-      .split(" ")[0]
-      .replaceAll(/<|>|\s|\//g, "");
+    const openingTagSections = rawOpeningTag.trim().split(" ");
+    const openingTag = openingTagSections[0].replaceAll(/<|>|\s|\//g, "");
+    const attributes = openingTagSections
+      .slice(1)
+      .map((kv) => kv.trim().split("="))
+      .filter((pair) => pair.length === 2)
+      .map(([k, v]) => [k, v.replaceAll(/^\"|^'|\"$|'$/g, "")]);
 
     if (openingTag !== closingTag) {
       throw TypeError(
@@ -284,7 +290,7 @@
       return { ...innerTemplate, props: extractProps(rawOpeningTag) };
     }
 
-    return { openingTag, innerHTML, closingTag, props: [] };
+    return { openingTag, innerHTML, closingTag, props: [], attributes };
   }
 
   /**
