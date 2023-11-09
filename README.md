@@ -1,5 +1,7 @@
 # alpml
 
+![CI](https://github.com/Tinitto/alpml/actions/workflows/ci.yml/badge.svg)
+
 A Javascript framework without need for bundlers, based on Alpine.js
 
 ## Challenge
@@ -18,6 +20,10 @@ A Javascript framework without need for bundlers, based on Alpine.js
 
 - Every alpml component **must** have at least one hyphen (-) in it, as all [Web components should](https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name).
 
+## How to Use
+
+- See the [examples](./examples/) folder for example usage.
+
 ## Contributing
 
 - You need to have [nodejs +v16](https://nodejs.org/en/)
@@ -30,3 +36,7 @@ A Javascript framework without need for bundlers, based on Alpine.js
 Copyright (c) 2020 [Martin Ahindura](https://github.com/Tinitto)
 
 Licensed under the [MIT License](./LICENSE)
+
+## Acknowledgements
+
+- [Alpine.js](https://alpinejs.dev/) is at the core of this little framework. Thanks to Caleb Porzio and contributors.
