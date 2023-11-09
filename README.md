@@ -1,6 +1,6 @@
 # alpml
 
-![CI](https://github.com/Tinitto/alpml/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/sopherapps/alpml/actions/workflows/ci.yml/badge.svg)
 
 A Javascript framework without need for bundlers, based on Alpine.js
 
