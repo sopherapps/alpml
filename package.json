@@ -7,7 +7,7 @@
     "example": "examples"
   },
   "scripts": {
-    "test": "jest --detectOpenHandles --forceExit && kill $(lsof -t -i:3000)",
+    "test": "jest --detectOpenHandles --forceExit",
     "serve": "parcel examples/hello-alpml/index.html --port 3000 --dist-dir out",
     "copy": "cp -f index.js dist/alpml.js",
     "minify": "rm dist/alpml.min.js || echo 'no pre-existing alpml.min.js' && terser index.js -c -o dist/alpml.min.js",
