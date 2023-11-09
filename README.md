@@ -22,14 +22,80 @@ A Javascript framework without need for bundlers, based on Alpine.js
 
 ## How to Use
 
-- See the [examples](./examples/) folder for example usage.
+- Define your component(s), each in their own '.hbs' file.
 
-## Contributing
+```html
+<!--main.hbs-->
+<template props="initial,children">
+  <div data-cy-main="${initial}">
+    <h2>Counter</h2>
+    <div data-cy-content="" x-data="{ count: ${initial} }">
+      <button x-on:click="count++">Increment</button>
+      ${children}
+      <span x-text="count"></span>
+    </div>
+  </div>
+</template>
+```
 
-- You need to have [nodejs +v16](https://nodejs.org/en/)
-- Clone the repository
-- Create an issue that you wish to solve
-- Make a pull request to fix the given issue
+```html
+<!--card.hbs-->
+<template props="name">
+  <div data-cy-card="${name}">
+    <h3>Person</h3>
+    <p>My name is ${name}</p>
+  </div>
+</template>
+```
+
+- Create an html file, say `index.html` and add the alpml.js script to it
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alpml</title>
+
+    <!--Declare your components -->
+    <!-- the 'is' attribute specifies the name of the component. It must have at least one hyphen (-)-->
+    <object is="person-card" type="text/x-alpml" data="./card.hbs"></object>
+    <object is="my-main" type="text/x-alpml" data="./main.hbs"></object>
+
+    <!--/Components-->
+
+    <!--alpml.js after components but before the body-->
+    <script src="https://cdn.jsdelivr.net/gh/sopherapps/alpml@v0.0.1/dist/alpml.min.js"></script>
+  </head>
+
+  <body>
+    <!--use your components, passing any props basing on your templates-->
+    <my-main initial="50">
+      <!-- nesting is possible -->
+      <person-card name="Ruth"></person-card>
+    </my-main>
+
+    <div>
+      <h2>Other cards</h2>
+      <person-card name="Jane"></person-card>
+      <person-card name="Aguma"></person-card>
+      <person-card name="Peter"></person-card>
+    </div>
+  </body>
+</html>
+```
+
+- Serve your html file as you would serve any static file. (e.g. with [parcel](https://parceljs.org/) `parcel index.html --port 3000`)
+
+- See the [examples](./examples/) folder for more examples.
+
+## Contributions
+
+Contributions are welcome. The docs have to maintained, the code has to be made cleaner, more idiomatic and faster,
+and there might be need for someone else to take over this repo in case I move on to other things. It happens!
+
+When you are ready, look at the [CONTRIBUTIONS GUIDELINES](./CONTRIBUTING.md)
 
 ## License
 
@@ -40,3 +106,14 @@ Licensed under the [MIT License](./LICENSE)
 ## Acknowledgements
 
 - [Alpine.js](https://alpinejs.dev/) is at the core of this little framework. Thanks to Caleb Porzio and contributors.
+
+## Gratitude
+
+> "What is more, I consider everything a loss because of the surpassing worth of knowing Christ Jesus
+> my Lord, for whose sake I have lost all things"
+>
+> -- Philippians 3: 8
+
+All glory be to God
+
+<a href="https://www.buymeacoffee.com/martinahinJ" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
