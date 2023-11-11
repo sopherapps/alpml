@@ -99,7 +99,7 @@ When you are ready, look at the [CONTRIBUTIONS GUIDELINES](./CONTRIBUTING.md)
 
 ## License
 
-Copyright (c) 2020 [Martin Ahindura](https://github.com/Tinitto)
+Copyright (c) 2023 [Martin Ahindura](https://github.com/Tinitto)
 
 Licensed under the [MIT License](./LICENSE)
 
